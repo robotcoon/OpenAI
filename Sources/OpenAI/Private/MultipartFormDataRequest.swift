@@ -11,7 +11,6 @@ import FoundationNetworking
 #endif
 
 final class MultipartFormDataRequest<ResultType> {
-    
     let body: MultipartFormDataBodyEncodable
     let url: URL
     let method: String
@@ -24,8 +23,10 @@ final class MultipartFormDataRequest<ResultType> {
 }
 
 extension MultipartFormDataRequest: URLRequestBuildable {
-    
-    func build(token: String, organizationIdentifier: String?, timeoutInterval: TimeInterval) throws -> URLRequest {
+    func build(token: String,
+               organizationIdentifier: String?,
+               timeoutInterval: TimeInterval,
+               headers: [String: String]) throws -> URLRequest {
         var request = URLRequest(url: url)
         let boundary: String = UUID().uuidString
         request.timeoutInterval = timeoutInterval
@@ -35,6 +36,8 @@ extension MultipartFormDataRequest: URLRequestBuildable {
         if let organizationIdentifier {
             request.setValue(organizationIdentifier, forHTTPHeaderField: "OpenAI-Organization")
         }
+        headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
+        
         request.httpBody = body.encode(boundary: boundary)
         return request
     }

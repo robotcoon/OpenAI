@@ -11,8 +11,10 @@ import FoundationNetworking
 #endif
 
 protocol URLRequestBuildable {
-    
     associatedtype ResultType
     
-    func build(token: String, organizationIdentifier: String?, timeoutInterval: TimeInterval) throws -> URLRequest
+    func build(token: String,
+               organizationIdentifier: String?,
+               timeoutInterval: TimeInterval,
+               headers: [String: String]) throws -> URLRequest
 }
