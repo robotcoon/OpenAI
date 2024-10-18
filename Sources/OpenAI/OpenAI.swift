@@ -10,6 +10,10 @@ import Foundation
 import FoundationNetworking
 #endif
 
+public protocol OpenAIDelegate: AnyObject {
+    func openAI(_ openAI: OpenAI, didPrepare request: URLRequest) -> URLRequest
+}
+
 final public class OpenAI: OpenAIProtocol {
 
     public struct Configuration {
@@ -66,7 +70,8 @@ final public class OpenAI: OpenAIProtocol {
     private var streamingSessions = ArrayWithThreadSafety<NSObject>()
     
     public let configuration: Configuration
-
+    public weak var delegate: OpenAIDelegate?
+    
     public convenience init(apiToken: String) {
         self.init(configuration: Configuration(token: apiToken), session: URLSession.shared)
     }
@@ -151,10 +156,13 @@ extension OpenAI {
 
     func performRequest<ResultType: Codable>(request: any URLRequestBuildable, completion: @escaping (Result<ResultType, Error>) -> Void) {
         do {
-            let request = try request.build(token: configuration.token, 
-                                            organizationIdentifier: configuration.organizationIdentifier,
-                                            timeoutInterval: configuration.timeoutInterval,
-                                            headers: configuration.headers)
+            let buildRequest = try request.build(token: configuration.token,
+                                                 organizationIdentifier: configuration.organizationIdentifier,
+                                                 timeoutInterval: configuration.timeoutInterval,
+                                                 headers: configuration.headers)
+            
+            let request = delegate?.openAI(self, didPrepare: buildRequest) ?? buildRequest
+            
             let task = session.dataTask(with: request) { data, _, error in
                 if let error = error {
                     return completion(.failure(error))

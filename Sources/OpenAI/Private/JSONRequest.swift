@@ -11,7 +11,6 @@ import FoundationNetworking
 #endif
 
 final class JSONRequest<ResultType> {
-    
     let body: Codable?
     let url: URL
     let method: String
